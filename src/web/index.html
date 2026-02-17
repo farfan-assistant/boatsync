@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BoatSync — Calendar Sync for Charter Boats</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>⚓ Boat<span>Sync</span></h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="syncAll()">🔄 Sync All</button>
+      <button class="btn btn-primary btn-sm" onclick="showAddBoat()">+ Add Boat</button>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-boats">0</div>
+      <div class="stat-label">Boats</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-feeds">0</div>
+      <div class="stat-label">Feeds Connected</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-events">0</div>
+      <div class="stat-label">Bookings Tracked</div>
+    </div>
+    <div class="stat-card alert" id="stat-conflicts-card">
+      <div class="stat-value" id="stat-conflicts">0</div>
+      <div class="stat-label">Conflicts</div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main">
+    <!-- Sidebar: Boat List -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          🚢 Your Boats
+          <button class="btn btn-primary btn-sm" onclick="showAddBoat()">+ Add</button>
+        </div>
+        <div class="panel-body scroll" id="boat-list">
+          <div class="empty-state">
+            <div class="empty-icon">🚢</div>
+            <h3>No boats yet</h3>
+            <p>Add your first charter boat to get started.</p>
+            <button class="btn btn-primary" onclick="showAddBoat()">+ Add Boat</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conflicts Panel -->
+      <div class="panel" style="margin-top: 1rem;" id="conflicts-panel" hidden>
+        <div class="panel-header" style="color: var(--coral);">
+          🚨 Conflicts
+        </div>
+        <div class="panel-body scroll" id="conflicts-list"></div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+      <!-- Tabs -->
+      <div class="panel" id="main-panel">
+        <div class="tabs">
+          <div class="tab active" data-tab="calendar" onclick="switchTab('calendar')">📅 Calendar</div>
+          <div class="tab" data-tab="events" onclick="switchTab('events')">📋 Events</div>
+          <div class="tab" data-tab="feeds" onclick="switchTab('feeds')">🔗 Feeds</div>
+          <div class="tab" data-tab="sync-log" onclick="switchTab('sync-log')">📊 Sync Log</div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div class="tab-content" id="tab-calendar">
+          <div class="panel-header">
+            <div class="month-nav">
+              <button class="btn btn-icon btn-secondary" onclick="prevMonth()">◀</button>
+              <span class="month-label" id="month-label">February 2026</span>
+              <button class="btn btn-icon btn-secondary" onclick="nextMonth()">▶</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="goToday()">Today</button>
+          </div>
+          <div class="panel-body">
+            <div class="calendar-grid" id="calendar-grid"></div>
+          </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div class="tab-content" id="tab-events" hidden>
+          <div class="panel-body scroll" id="events-list">
+            <div class="empty-state">
+              <div class="empty-icon">📅</div>
+              <h3>No events</h3>
+              <p>Connect iCal feeds to see bookings here.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feeds Tab -->
+        <div class="tab-content" id="tab-feeds" hidden>
+          <div class="panel-header">
+            Feed URLs
+            <button class="btn btn-primary btn-sm" onclick="showAddFeed()" id="add-feed-btn" hidden>+ Add Feed</button>
+          </div>
+          <div class="panel-body" id="feeds-section">
+            <div class="empty-state">
+              <div class="empty-icon">🔗</div>
+              <h3>No feeds connected</h3>
+              <p>Select a boat, then add iCal feed URLs from your booking platforms.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sync Log Tab -->
+        <div class="tab-content" id="tab-sync-log" hidden>
+          <div class="panel-body scroll" id="sync-log-list">
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <h3>No sync history</h3>
+              <p>Sync your feeds to see activity here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Boat Modal -->
+  <div class="modal-overlay" id="modal-add-boat">
+    <div class="modal">
+      <div class="modal-header">
+        🚢 Add Boat
+        <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-add-boat')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Boat Name</label>
+          <input type="text" id="boat-name" placeholder="e.g. Sea Breeze" autofocus>
+        </div>
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <input type="text" id="boat-description" placeholder="e.g. 42ft sailboat, Marina del Rey">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-boat')">Cancel</button>
+        <button class="btn btn-primary" onclick="addBoat()">Add Boat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Feed Modal -->
+  <div class="modal-overlay" id="modal-add-feed">
+    <div class="modal">
+      <div class="modal-header">
+        🔗 Add Calendar Feed
+        <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-add-feed')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Platform</label>
+          <select id="feed-platform">
+            <option value="getmyboat">GetMyBoat</option>
+            <option value="boatsetter">Boatsetter</option>
+            <option value="fishingbooker">FishingBooker</option>
+            <option value="samboat">SamBoat</option>
+            <option value="fareharbor">FareHarbor</option>
+            <option value="google">Google Calendar</option>
+            <option value="outlook">Outlook / Office 365</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Feed Name</label>
+          <input type="text" id="feed-name" placeholder="e.g. GetMyBoat — Sea Breeze">
+        </div>
+        <div class="form-group">
+          <label>iCal Feed URL</label>
+          <input type="url" id="feed-url" placeholder="https://platform.com/calendar/export.ics">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-add-feed')">Cancel</button>
+        <button class="btn btn-primary" onclick="addFeed()">Add Feed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

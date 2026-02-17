@@ -1,0 +1,22 @@
+{
+  "name": "boatsync",
+  "version": "0.1.0",
+  "description": "Calendar sync for charter boats — stop double bookings across platforms",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test src/**/*.test.js",
+    "sync": "node src/cli/sync.js"
+  },
+  "keywords": ["charter", "boat", "calendar", "ical", "sync", "booking"],
+  "author": "Hephaestus",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.21.0",
+    "ical-generator": "^8.0.0",
+    "node-ical": "^0.18.0",
+    "uuid": "^10.0.0"
+  }
+}
